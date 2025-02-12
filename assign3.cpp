@@ -267,13 +267,37 @@ TreeNode* deleteinBST(TreeNode* root,int x){
     }
     return root;
 }
+int search(vector<int> &inor,int value,int left,int right){
+    for(int i=left;i<=right;i++){
+        if(inor[i]==value){
+            return i;
+        }
+    }
+    return -1;
+}
+TreeNode* buildtree(vector<int> &inor,vector<int>&preor,int &preindex,int left,int right){
+    if(left>right){return nullptr;}
+    int rootvalue=preor[preindex];
+    preindex++;
+    TreeNode* newnode=new TreeNode(rootvalue);
+    int index=search(inor,rootvalue,left,right);
+    newnode->left=buildtree(inor,preor,preindex,left,index-1);
+    newnode->right=buildtree(inor,preor,preindex,index+1,right);
+    return newnode;
+}
+TreeNode* createtreefrominandpost(vector<int> &inor,vector<int>&preor){
+    int preindex=0;
+    TreeNode*ans=buildtree(inor,preor,preindex,0,preor.size()-1);
+    return ans;
+}
 int main(){
     bool flag=true;
     while(flag){
         cout<<"*********************** Menu ***********************" <<endl;
         cout<<"1. Create a Tree"<<endl;
         cout<<"2. Create a BST (Insert, Delete, Search)"<<endl;
-        cout<<"3. Exit"<<endl<<endl;
+        cout<<"3. Create Binary Tree from inorder and preorder"<<endl;
+        cout<<"4. Exit"<<endl<<endl;
         int op;
         cout<<"Enter option: ";
         cin>>op;
@@ -411,6 +435,25 @@ int main(){
             }
         }
         else if(op==3){
+            cout<<"Enter number of elements in tree: ";
+            int n;
+            cin>>n;
+            vector<int> inor(n);
+            vector<int> preor(n);
+            for(int i=0;i<n;i++){
+                cout<<"Enter element in inorder: ";
+                cin>>inor[i];
+            }
+            for(int i=0;i<n;i++){
+                cout<<"Enter element in preorder: ";
+                cin>>preor[i];
+            }
+            TreeNode*root2=createtreefrominandpost(inor,preor);
+            cout<<"Levelorder of Tree:"<<endl;
+            levelorder(root2);
+            cout<<endl<<endl;
+        }
+        else if(op==4){
             flag=false;
         }
     }
