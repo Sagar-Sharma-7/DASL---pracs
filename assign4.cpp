@@ -1,242 +1,232 @@
-#include <bits/stdc++.h>
+// C++ implementation of the double
+// threaded binary searighth tree
+
+#include <iostream>
 using namespace std;
 
-class node
-{
+// Class of the Node
+class Node {
+	int lbit, rbit;
+	int value;
+	Node *left, *right;
+
 public:
-    int val;
-    node *left;
-    node *right;
-    bool lf, rf;
-    node()
-    {
-        left = NULL;
-        right = NULL;
-        lf = rf = true;
-    }
-    node(int x)
-    {
-        val = x;
-        left = NULL;
-        right = NULL;
-        lf = rf = true;
-    }
+	// Constructor of the
+	// Node of the Tree
+	Node()
+	{
+		lbit = rbit = 0;
+		value = 0;
+		left = right = NULL;
+	}
+	friend class DTBT;
 };
 
-void inorder(node *root, vector<node *> &v)
+// Class of the Threaded
+// Binary search tree
+class DTBT {
+	Node* root;
+
+public:
+	// Constructor of the
+	// Threaded of the Binary
+	// Search Tree
+	DTBT()
+	{
+		root = new Node();
+
+		// Initialise the dummy node
+		// to any random value of
+		// your choice.
+		root->value = 9999;
+
+		// Considering our whole
+		// tree is at left of
+		// dummy node
+		root->rbit = 1;
+		root->lbit = 0;
+
+		// Consider your whole tree
+		// lies to the left of
+		// this dummy node.
+		root->left = root;
+		root->right = root;
+	}
+	void create();
+	void insert(int value);
+	void preorder();
+	Node* preorderSuccessor(Node*);
+	void inorder();
+	Node* inorderSuccessor(Node*);
+};
+
+// Function to create the Binary
+// search tree
+void DTBT::create()
 {
-    if (root == NULL)
-        return;
-    inorder(root->left, v);
-    v.push_back(root);
-    // cout<<root->val;
-    inorder(root->right, v);
+	int n = 9;
+
+	// Insertion of the nodes
+	this->insert(6);
+	this->insert(3);
+	this->insert(1);
+	this->insert(5);
+	this->insert(8);
+	this->insert(7);
+	this->insert(11);
+	this->insert(9);
+	this->insert(13);
 }
 
-void insertIntoTBST(node *&root, int key)
+// Function to insert the nodes
+// into the threaded binary
+// search tree
+void DTBT::insert(int data)
 {
-    node *nw = new node(key);
-    if (root->left == NULL)
-    {
-        root->left = nw;
-        nw->left = root;
-        nw->right = root;
-        return;
-    }
-    node *temp = root->left;
-    while (true)
-    {
-        if (temp->val > key)
-        {
-            if (temp->lf)
-            {
-                nw->left = temp->left;
-                temp->left = nw;
-                temp->lf = false;
-                nw->right = temp;
-                return;
-            }
-            else
-                temp = temp->left;
-        }
-        else
-        {
-            if (temp->rf)
-            {
-                nw->right = temp->right;
-                temp->right = nw;
-                temp->rf = false;
-                nw->left = temp;
-                return;
-            }
-            else
-                temp = temp->right;
-        }
-    }
+	// Condition to check if there
+	// is no node in the binary tree
+	if (root->left == root
+		&& root->right == root) {
+
+		Node* p = new Node();
+		p->value = data;
+		p->left = root->left;
+		p->lbit = root->lbit;
+		p->rbit = 0;
+		p->right = root->right;
+
+		// Inserting the node in the
+		// left of the dummy node
+		root->left = p;
+		root->lbit = 1;
+		return;
+	}
+
+	// New node
+	Node* cur = new Node;
+	cur = root->left;
+	while (1) {
+		// Condition to check if the
+		// data to be inserted is
+		// less than the current node
+		if (cur->value < data) {
+			Node* p = new Node();
+			p->value = data;
+			if (cur->rbit == 0) {
+				p->right = cur->right;
+				p->rbit = cur->rbit;
+				p->lbit = 0;
+				p->left = cur;
+
+				// Inserting the node
+				// in the right
+				cur->rbit = 1;
+				cur->right = p;
+				return;
+			}
+			else
+				cur = cur->right;
+		}
+
+		// Otherwise insert the node
+		// in the left of current node
+		if (cur->value > data) {
+			Node* p = new Node();
+			p->value = data;
+			if (cur->lbit == 0) {
+				p->left = cur->left;
+				p->lbit = cur->lbit;
+				p->rbit = 0;
+
+				// Pointing the right child
+				// to its inorder Successor
+				p->right = cur;
+				cur->lbit = 1;
+				cur->left = p;
+				return;
+			}
+			else
+				cur = cur->left;
+		}
+	}
 }
 
-node *leftMost(node *n, node *dm)
+// In Threaded binary search tree
+// the left pointer of every node
+// points to its Inorder predecessor,
+// whereas its right pointer points
+// to the Inorder Successor
+void DTBT::preorder()
 {
-    if (n == NULL)
-        return NULL;
+	Node* c = root->left;
 
-    while (!n->lf && n->left != dm)
-        n = n->left;
-
-    return n;
+	// Loop to traverse the tree in
+	// the preorder fashion
+	while (c != root) {
+		cout << " " << c->value;
+		c = preorderSuccessor(c);
+	}
 }
 
-void inorder_TBST(node *root)
+// Function to find the preorder
+// Successor of the node
+Node* DTBT::preorderSuccessor(Node* c)
 {
-    node *dm = root;
-    node *cur = leftMost(root->left, dm);
-    cout << "Inoder traversal of threaded binary tree :" << endl;
-    while (cur != dm)
-    {
-        cout << cur->val << " ";
-        if (cur->rf)
-            cur = cur->right;
-        else
-            cur = leftMost(cur->right, dm);
-    }
+	if (c->lbit == 1) {
+		return c->left;
+	}
+	while (c->rbit == 0) {
+		c = c->right;
+	}
+	return c->right;
 }
 
-void insertIntoBST(node *&root, int key)
+// In Threaded binary search tree
+// the left pointer of every node
+// points to its Inorder predecessor
+// whereas its right pointer points
+// to the Inorder Successor
+void DTBT::inorder()
 {
-    node *nw = new node(key);
-    if (root == NULL)
-    {
-        root = nw;
-        return;
-    }
-    node *temp = root;
-    while (true)
-    {
-        if (temp->val > key)
-        {
-            if (temp->left == NULL)
-            {
-                temp->left = nw;
-                return;
-            }
-            else
-                temp = temp->left;
-        }
-        else
-        {
-            if (temp->right == NULL)
-            {
-                temp->right = nw;
-                return;
-            }
-            else
-                temp = temp->right;
-        }
-    }
+	Node* c;
+	c = root->left;
+	while (c->lbit == 1)
+		c = c->left;
+
+	// Loop to traverse the tree
+	while (c != root) {
+		cout << " " << c->value;
+		c = inorderSuccessor(c);
+	}
 }
 
-node *convertToTBST(node *&root, vector<node *> inord)
+// Function to find the inorder
+// successor of the node
+Node* DTBT::inorderSuccessor(Node* c)
 {
-    node *dummy = new node(1000);
-    dummy->left = root;
-    dummy->right = dummy;
-    dummy->lf = false;
-    int i = 0;
-
-    while (i < inord.size())
-    {
-        if (inord[i]->left == NULL)
-        {
-            if (i != 0)
-                inord[i]->left = inord[i - 1];
-            else
-                inord[i]->left = dummy;
-        }
-        else
-            inord[i]->lf = false;
-        if (inord[i]->right == NULL)
-        {
-            if (i != inord.size() - 1)
-                inord[i]->right = inord[i + 1];
-            else
-                inord[i]->right = dummy;
-        }
-        else
-            inord[i]->rf = false;
-        i++;
-    }
-    return dummy;
+	if (c->rbit == 0)
+		return c->right;
+	else
+		c = c->right;
+	while (c->lbit == 1) {
+		c = c->left;
+	}
+	return c;
 }
 
+// Driver Code
 int main()
 {
-    // node *tbst = new node(999);
-    // insertIntoTBST(tbst, 10);
-    // insertIntoTBST(tbst, 7);
-    // insertIntoTBST(tbst, 9);
-    // insertIntoTBST(tbst, 8);
-    // insertIntoTBST(tbst, 12);
+	DTBT t1;
 
-    // vector<int> ans = inorder_TBST(tbst);
-    // cout << "Inorder traversal of threaded binary tree : " << endl;
-    // for (auto it : ans)
-    //     cout << it << " ";
-    // cout << endl;
-    
-    while(true)
-    {
-       cout<<"";
-       break;
-    }
+	// Creation of the Threaded
+	// Binary search tree
+	t1.create();
 
-    node *bst1 = NULL;
-    insertIntoBST(bst1, 10);
-    insertIntoBST(bst1, 8); // complete tree
-    insertIntoBST(bst1, 12);
-    insertIntoBST(bst1, 9);
-    insertIntoBST(bst1, 7);
-    insertIntoBST(bst1, 11);
-    insertIntoBST(bst1, 15);
+	cout << "Inorder Traversal of DTBST\n";
+	t1.inorder();
 
-    vector<node *> inord1;
-    inorder(bst1, inord1);
-    node *newRoot1 = convertToTBST(bst1, inord1);
-    inorder_TBST(newRoot1);
-    cout << endl;
-
-    bst1 = NULL;
-    insertIntoBST(bst1, 10);
-    insertIntoBST(bst1, 9); // left skew tree
-    insertIntoBST(bst1, 8);
-    insertIntoBST(bst1, 7);
-    insertIntoBST(bst1, 6);
-
-    inorder(bst1, inord1);
-    newRoot1 = convertToTBST(bst1, inord1);
-    inorder_TBST(newRoot1);
-    cout << endl;
-
-    bst1 = NULL;
-    insertIntoBST(bst1, 1);
-    insertIntoBST(bst1, 2); // right skew tree
-    insertIntoBST(bst1, 3);
-    insertIntoBST(bst1, 4);
-    insertIntoBST(bst1, 5);
-
-    inorder(bst1, inord1);
-    newRoot1 = convertToTBST(bst1, inord1);
-    inorder_TBST(newRoot1);
-    cout << endl;
-
-    bst1 = NULL;
-    insertIntoBST(bst1, 10);
-    insertIntoBST(bst1, 20); // zig-zag tree
-    insertIntoBST(bst1, 15);
-    insertIntoBST(bst1, 18);
-    insertIntoBST(bst1, 16);
-
-    inorder(bst1, inord1);
-    newRoot1 = convertToTBST(bst1, inord1);
-    inorder_TBST(newRoot1);
-    cout << endl;
+	cout << "\nPreorder Traversal of DTBST\n";
+	t1.preorder();
+	return 0;
 }
